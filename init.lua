@@ -1,3 +1,43 @@
+--GUI for collected items
+item_collect_gui = {}
+--Add GUI table on join player
+minetest.register_on_joinplayer(function(player)
+	item_collect_gui[player:get_player_name()] = {}
+	item_collect_gui[player:get_player_name()]["counter"] = 0
+	item_collect_gui[player:get_player_name()]["items"] = {}
+end)
+local gui_collection = function(player,item)
+	--this was a debug test to clear the screen
+	if item_collect_gui[player:get_player_name()]["items"] ~= {} then
+		for table_index,hud in pairs(item_collect_gui[player:get_player_name()]["items"]) do
+			player:hud_remove(hud)
+			tabl_index = nil
+		end
+	end
+	local name     = player:get_player_name()
+
+	local count    = ItemStack(item):get_count()
+	local itemname = ItemStack(item):get_name()
+	
+	local description = minetest.registered_items[itemname].description
+
+	local id = player:hud_add({
+				hud_elem_type = "text",
+				position = {x = 0.10, y =0.92},
+				scale = {
+					x = -100,
+					y = -100
+				},
+			text = description,
+			})
+	item_collect_gui[name]["items"][itemname] = {}
+	item_collect_gui[name]["items"][itemname]["id"] = id
+	item_collect_gui[name]["items"][itemname]["age"] = 0
+	
+	
+	
+end
+
 --Item collection
 minetest.register_globalstep(function(dtime)
 	--basic settings
@@ -5,6 +45,7 @@ minetest.register_globalstep(function(dtime)
 	local radius_magnet         = 2.5 --radius of item magnet
 	local radius_collect        = 0.2 --radius of collection
 	local player_collect_height = 1.6 --added to their pos y value
+	local gui                   = true --Show what items are collected
 	for _,player in ipairs(minetest.get_connected_players()) do
 		if player:get_hp() > 0 then
 			local pos = player:getpos()
@@ -22,6 +63,9 @@ minetest.register_globalstep(function(dtime)
 									max_hear_distance = 100,
 									gain = 10.0,
 								})
+								if gui == true then
+									gui_collection(player,object:get_luaentity().itemstring)
+								end
 								object:get_luaentity().itemstring = ""
 								object:remove()
 							end
