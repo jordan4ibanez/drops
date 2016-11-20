@@ -1,25 +1,15 @@
---figure out a way to set .collect on item entities for falling and attached nodes
-
---This is worked to only work in survival mode
+--Item collection
 minetest.register_globalstep(function(dtime)
 	--basic settings
 	local age                   = 1 --how old an item has to be before collecting
 	local radius_magnet         = 2.5 --radius of item magnet
 	local radius_collect        = 0.2 --radius of collection
-	local player_collect_height = 1.5 --added to their pos y value
-	local collection_safety     = false --do this to prevent items from flying away on laggy servers
-	local collect_by_default    = true --make item entities automatically collect in the item entity code  
-													--versus setting it in the item drop code, setting true might interfere with
-													--mods that use item entities (like pipeworks)
-													
-	local random_item_velocity  = true --this sets random item velocity if velocity is 0
+	local player_collect_height = 1.6 --added to their pos y value
 	for _,player in ipairs(minetest.get_connected_players()) do
 		if player:get_hp() > 0 then
 			local pos = player:getpos()
 			local inv = player:get_inventory()
-			
 			--collection
-			
 			for _,object in ipairs(minetest.env:get_objects_inside_radius({x=pos.x,y=pos.y + player_collect_height,z=pos.z}, radius_collect)) do
 				if not object:is_player() and object:get_luaentity() and object:get_luaentity().name == "__builtin:item" then
 					if object:get_luaentity().age > age then
@@ -41,46 +31,22 @@ minetest.register_globalstep(function(dtime)
 					end
 				end
 			end
-			
-			
 			--magnet
 			for _,object in ipairs(minetest.env:get_objects_inside_radius({x=pos.x,y=pos.y + player_collect_height,z=pos.z}, radius_magnet)) do
 				if not object:is_player() and object:get_luaentity() and object:get_luaentity().name == "__builtin:item" then
 					if object:get_luaentity().age > age then
 						if inv and inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
-										
-							--modified simplemobs api
-							
 							local pos1 = pos
-							--pos1.y = pos1.y+player_collect_height
 							local pos2 = object:getpos()
 							local vec = {x=pos1.x-pos2.x, y=(pos1.y+player_collect_height)-pos2.y, z=pos1.z-pos2.z}
-							--vec.x = vec.x
-							--vec.y = vec.y
-							--vec.z = vec.z
-							
-							vec.x = pos2.x + (vec.x/3)
-							vec.y = pos2.y + (vec.y/3)
-							vec.z = pos2.z + (vec.z/3)
+							vec.x = pos2.x + (vec.x/2)
+							vec.y = pos2.y + (vec.y/2)
+							vec.z = pos2.z + (vec.z/2)
 							object:moveto(vec)
-							
-							
-							
 							object:get_luaentity().physical_state = false
 							object:get_luaentity().object:set_properties({
 								physical = false
 							})
-							
-							--fix eternally falling items
-							--[[
-							minetest.after(0, function(object)
-								if object:get_luaentity() then
-									object:setacceleration({x=0, y=-10, z=0})
-									object:get_luaentity().physical_state = true
-								end
-								--object:get_luaentity():set_properties({physical = true})
-							end, object)
-							]]--
 						end
 					end
 				end
@@ -89,6 +55,8 @@ minetest.register_globalstep(function(dtime)
 	end
 end)
 
+--Drop items on dig
+--This only works in survival
 if minetest.setting_getbool("creative_mode") == false then
 	function minetest.handle_node_drops(pos, drops, digger)
 		local inv
@@ -132,18 +100,20 @@ if minetest.setting_getbool("creative_mode") == false then
 		end
 	end
 end
+
 --throw items using player's velocity
 function minetest.item_drop(itemstack, dropper, pos)
 	if dropper and dropper:is_player() then
 		local v = dropper:get_look_dir()
-		local p = {x=pos.x, y=pos.y+1.2, z=pos.z}
+		local vel = dropper:get_player_velocity()
+		local p = {x=pos.x, y=pos.y+1.3, z=pos.z}
 
 		local item = itemstack:to_string()
 		local obj = core.add_item(p, item)
 		if obj then
-			v.x = v.x*4
-			v.y = v.y*4 + 2
-			v.z = v.z*4
+			v.x = (v.x*5)+vel.x
+			v.y = ((v.y*5)+2)+vel.y
+			v.z = (v.z*5)+vel.z
 			obj:setvelocity(v)
 			--obj:get_luaentity().collect = true
 			itemstack:clear()
@@ -153,5 +123,5 @@ function minetest.item_drop(itemstack, dropper, pos)
 end
 
 if minetest.setting_get("log_mods") then
-	minetest.log("action", "item drop loaded")
+	minetest.log("action", "Item Drop loaded")
 end
