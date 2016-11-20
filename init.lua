@@ -38,11 +38,45 @@ local gui_collection = function(player,item)
 		end
 		item_collect_gui[name]["items"][itemname]["id"] = id
 		item_collect_gui[name]["items"][itemname]["age"] = 0
+		item_collect_gui[name]["items"][itemname]["name"] = itemname
 	end
 
 	item_collect_gui[name]["items"][itemname]["count"] = count + oldcount
 end
-
+--Updating the age of each hud element along with deleting old huds and shifting up text on deletion
+local update_collection_gui = function(player,dtime)
+	local name = player:get_player_name()
+	local max_age = 2
+	local update = false
+	--print(dump(item_collect_gui[name]["items"]))
+	--add gui time + remove expired gui
+	if item_collect_gui[name] ~= nil then
+		for index,value in pairs(item_collect_gui[name]["items"]) do
+			value["age"] = value["age"] + dtime
+			if value["age"] > max_age then
+				player:hud_remove(item_collect_gui[name]["items"][value["name"]]["id"])
+				item_collect_gui[name]["items"][value["name"]] = nil
+				update = true
+			end
+		end
+	end
+	--shift all table items up
+	--change background size
+	local count = 1
+	if update == true then
+		print("update!")
+		if item_collect_gui[name] ~= nil then
+			for index,value in pairs(item_collect_gui[name]["items"]) do
+				print(item_collect_gui[name]["items"][value["name"]]["id"])
+				player:hud_change(item_collect_gui[name]["items"][value["name"]]["id"],
+				 "position",
+				  {x = 0.5, y =(count*2)/100})
+				  count = count + 1
+			end
+		end
+		item_collect_gui[player:get_player_name()]["counter"] = count
+	end
+end
 --Item collection
 minetest.register_globalstep(function(dtime)
 	--basic settings
@@ -55,6 +89,9 @@ minetest.register_globalstep(function(dtime)
 		if player:get_hp() > 0 then
 			local pos = player:getpos()
 			local inv = player:get_inventory()
+			if gui == true then
+				update_collection_gui(player,dtime)
+			end
 			--collection
 			for _,object in ipairs(minetest.env:get_objects_inside_radius({x=pos.x,y=pos.y + player_collect_height,z=pos.z}, radius_collect)) do
 				if not object:is_player() and object:get_luaentity() and object:get_luaentity().name == "__builtin:item" then
