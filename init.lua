@@ -3,39 +3,44 @@ item_collect_gui = {}
 --Add GUI table on join player
 minetest.register_on_joinplayer(function(player)
 	item_collect_gui[player:get_player_name()] = {}
-	item_collect_gui[player:get_player_name()]["counter"] = 0
+	item_collect_gui[player:get_player_name()]["counter"] = 1 --starts at one so positioning works correctly
 	item_collect_gui[player:get_player_name()]["items"] = {}
 end)
 local gui_collection = function(player,item)
-	--this was a debug test to clear the screen
-	if item_collect_gui[player:get_player_name()]["items"] ~= {} then
-		for table_index,hud in pairs(item_collect_gui[player:get_player_name()]["items"]) do
-			player:hud_remove(hud)
-			tabl_index = nil
-		end
-	end
+	--local variables
 	local name     = player:get_player_name()
-
 	local count    = ItemStack(item):get_count()
 	local itemname = ItemStack(item):get_name()
-	
 	local description = minetest.registered_items[itemname].description
+	--check to see if there was already a hud with a count
+	local oldcount = 0
+	if item_collect_gui[name]["items"][itemname] ~= nil then
+		oldcount = item_collect_gui[name]["items"][itemname]["count"] 
+	end
+	--update or add the hud
+	local id = {}
+	if item_collect_gui[name]["items"][itemname] ~= nil then
+		player:hud_change(item_collect_gui[name]["items"][itemname]["id"], "text", description.." "..(count + oldcount))
+	else
+		id = player:hud_add({
+					hud_elem_type = "text",
+					position = {x = 0.5, y =(item_collect_gui[player:get_player_name()]["counter"]*2)/100},
+					scale = {
+						x = -100,
+						y = -100
+					},
+				text = description.." "..(count + oldcount),
+				})
+		--add elements to hud table
+		if item_collect_gui[name]["items"][itemname] == nil then
+			item_collect_gui[name]["items"][itemname] = {}
+			item_collect_gui[player:get_player_name()]["counter"] = item_collect_gui[player:get_player_name()]["counter"] + 1
+		end
+		item_collect_gui[name]["items"][itemname]["id"] = id
+		item_collect_gui[name]["items"][itemname]["age"] = 0
+	end
 
-	local id = player:hud_add({
-				hud_elem_type = "text",
-				position = {x = 0.10, y =0.92},
-				scale = {
-					x = -100,
-					y = -100
-				},
-			text = description,
-			})
-	item_collect_gui[name]["items"][itemname] = {}
-	item_collect_gui[name]["items"][itemname]["id"] = id
-	item_collect_gui[name]["items"][itemname]["age"] = 0
-	
-	
-	
+	item_collect_gui[name]["items"][itemname]["count"] = count + oldcount
 end
 
 --Item collection
