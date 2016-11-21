@@ -21,6 +21,7 @@ local gui_collection = function(player,item)
 	local id = {}
 	if item_collect_gui[name]["items"][itemname] ~= nil then
 		player:hud_change(item_collect_gui[name]["items"][itemname]["id"], "text", description.." "..(count + oldcount))
+		item_collect_gui[name]["items"][itemname]["age"] = 0
 	else
 		id = player:hud_add({
 					hud_elem_type = "text",
@@ -46,9 +47,8 @@ end
 --Updating the age of each hud element along with deleting old huds and shifting up text on deletion
 local update_collection_gui = function(player,dtime)
 	local name = player:get_player_name()
-	local max_age = 2
+	local max_age = 3
 	local update = false
-	--print(dump(item_collect_gui[name]["items"]))
 	--add gui time + remove expired gui
 	if item_collect_gui[name] ~= nil then
 		for index,value in pairs(item_collect_gui[name]["items"]) do
@@ -64,13 +64,9 @@ local update_collection_gui = function(player,dtime)
 	--change background size
 	local count = 1
 	if update == true then
-		print("update!")
 		if item_collect_gui[name] ~= nil then
 			for index,value in pairs(item_collect_gui[name]["items"]) do
-				print(item_collect_gui[name]["items"][value["name"]]["id"])
-				player:hud_change(item_collect_gui[name]["items"][value["name"]]["id"],
-				 "position",
-				  {x = 0.5, y =(count*2)/100})
+				player:hud_change(item_collect_gui[name]["items"][value["name"]]["id"],"position",{x = 0.5, y =(count*2)/100})
 				  count = count + 1
 			end
 		end
