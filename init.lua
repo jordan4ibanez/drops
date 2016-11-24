@@ -185,7 +185,17 @@ end
 
 --throw items using player's velocity
 function minetest.item_drop(itemstack, dropper, pos)
-	if dropper and dropper:is_player() then
+	--do this to prevent dispensers and other things using this function from breaking
+	
+	--check if player
+	local is_player = false
+	if dropper then
+		if minetest.get_player_information(dropper:get_player_name()) then
+			is_player = true
+		end
+	end
+	--if player then do modified item drop
+	if dropper and is_player == true then
 		local v = dropper:get_look_dir()
 		local vel = dropper:get_player_velocity()
 		local p = {x=pos.x, y=pos.y+1.3, z=pos.z}
@@ -197,13 +207,30 @@ function minetest.item_drop(itemstack, dropper, pos)
 			v.y = ((v.y*5)+2)+vel.y
 			v.z = (v.z*5)+vel.z
 			obj:setvelocity(v)
+			obj:get_luaentity().dropped_by = dropper:get_player_name()
 			--obj:get_luaentity().collect = true
 			itemstack:clear()
 			return itemstack
 		end
+	else --if machine then use default item drop to not break mods - also extend reach
+		local v = dropper:get_look_dir()
+		local p = {x=pos.x+v.x, y=pos.y+1.5+v.y, z=pos.z+v.z}
+		local cs = itemstack:get_count()
+		if dropper:get_player_control().sneak then
+			cs = 1
+		end
+		local item = itemstack:take_item(cs)
+		local obj = core.add_item(p, item)
+		if obj then
+			v.x = v.x*5
+			v.y = v.y*5 + 2
+			v.z = v.z*5
+			obj:setvelocity(v)
+			obj:get_luaentity().dropped_by = dropper:get_player_name()
+			return itemstack
+		end
 	end
 end
-
 if minetest.setting_get("log_mods") then
 	minetest.log("action", "Item Drop loaded")
 end
