@@ -2,7 +2,7 @@ local age                   = 1 --how old an item has to be before collecting
 local radius_magnet         = 2.5 --radius of item magnet
 local player_collect_height = 1.3 --added to their pos y value
 local adjuster_collect      = 0.01 --Delay before collecting to visualize moveme
-	
+
 --Item collection
 minetest.register_globalstep(function(dtime)
 	--collection
@@ -28,7 +28,7 @@ minetest.register_globalstep(function(dtime)
 									object:get_luaentity().itemstring = ""
 									object:remove()
 								end
-							
+
 							--magnet
 							else
 								--moveto for extreme speed boost
@@ -37,7 +37,7 @@ minetest.register_globalstep(function(dtime)
 								object:moveto(pos1)
 								object:get_luaentity().collectioner = true
 								object:get_luaentity().age_stamp = object:get_luaentity().age
-								
+
 							end
 						end
 					end
@@ -74,7 +74,7 @@ end
 
 --Throw items using player's velocity
 function minetest.item_drop(itemstack, dropper, pos)
-	
+
 	--if player then do modified item drop
 	if dropper and minetest.get_player_information(dropper:get_player_name()) then
 		local v = dropper:get_look_dir()
@@ -93,6 +93,6 @@ function minetest.item_drop(itemstack, dropper, pos)
 		end
 	end
 end
-if minetest.setting_get("log_mods") then
+if minetest.settings:get("log_mods") then
 	minetest.log("action", "Drops loaded")
 end
