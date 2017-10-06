@@ -58,7 +58,7 @@ function minetest.handle_node_drops(pos, drops, digger)
 			count = item:get_count()
 			name = item:get_name()
 		end
-		if not inv or not inv:contains_item("main", ItemStack(name)) then
+		--if not inv or not inv:contains_item("main", ItemStack(name)) then
 			for i=1,count do
 				local obj = minetest.add_item(pos, name)
 				if obj ~= nil then
@@ -67,7 +67,7 @@ function minetest.handle_node_drops(pos, drops, digger)
 					obj:setvelocity({x=math.random(-3,3), y=math.random(2,5), z=math.random(-3,3)})
 				end
 			end
-		end
+		--end
 	end
 end
 
