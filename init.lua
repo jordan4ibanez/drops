@@ -23,7 +23,7 @@ minetest.register_globalstep(function(dtime)
 									minetest.sound_play("item_drop_pickup", {
 										pos = pos,
 										max_hear_distance = 15,
-										gain = 10.0,
+										gain = 0.1,
 									})
 									object:get_luaentity().itemstring = ""
 									object:remove()
