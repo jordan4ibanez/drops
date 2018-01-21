@@ -93,6 +93,6 @@ function minetest.item_drop(itemstack, dropper, pos)
 		end
 	end
 end
-if minetest.settings:get("log_mods") then
+if minetest.settings:get_bool("log_mods") then
 	minetest.log("action", "Drops loaded")
 end
