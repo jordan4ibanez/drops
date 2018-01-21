@@ -79,7 +79,7 @@ function minetest.item_drop(itemstack, dropper, pos)
 	if dropper and minetest.get_player_information(dropper:get_player_name()) then
 		local v = dropper:get_look_dir()
 		local vel = dropper:get_player_velocity()
-		local p = {x=pos.x, y=pos.y+1.3, z=pos.z}
+		local p = {x=pos.x, y=pos.y+player_collect_height, z=pos.z}
 		local item = itemstack:to_string()
 		local obj = core.add_item(p, item)
 		if obj then
@@ -88,6 +88,20 @@ function minetest.item_drop(itemstack, dropper, pos)
 			v.z = (v.z*5)+vel.z
 			obj:setvelocity(v)
 			obj:get_luaentity().dropped_by = dropper:get_player_name()
+			itemstack:clear()
+			return itemstack
+		end
+	--machine
+	else
+		local v = dropper:get_look_dir()
+		local item = itemstack:to_string()
+		local obj = minetest.add_item({x=pos.x,y=pos.y+1.5,z=pos.z}, item) --{x=pos.x+v.x,y=pos.y+v.y+1.5,z=pos.z+v.z}
+		if obj then
+			v.x = (v.x*5)
+			v.y = (v.y*5)
+			v.z = (v.z*5)
+			obj:setvelocity(v)
+			obj:get_luaentity().dropped_by = nil
 			itemstack:clear()
 			return itemstack
 		end
